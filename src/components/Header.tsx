@@ -1,13 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Ghost, Menu, X } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Ghost, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import ghostLogo from "@/assets/ghost-logo.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-ghost-gray/30">
@@ -43,12 +53,31 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              Connexion
-            </Button>
-            <Button variant="hero" size="sm">
-              Essai gratuit
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    {user.user_metadata?.name || user.email}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                  Connexion
+                </Button>
+                <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
+                  Essai gratuit
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -96,12 +125,26 @@ const Header = () => {
               </a>
               
               <div className="flex flex-col gap-3 pt-4 border-t border-ghost-gray/30">
-                <Button variant="ghost">
-                  Connexion
-                </Button>
-                <Button variant="hero">
-                  Essai gratuit
-                </Button>
+                {user ? (
+                  <>
+                    <div className="text-sm text-muted-foreground px-2">
+                      {user.user_metadata?.name || user.email}
+                    </div>
+                    <Button variant="ghost" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" onClick={() => navigate("/auth")}>
+                      Connexion
+                    </Button>
+                    <Button variant="hero" onClick={() => navigate("/auth")}>
+                      Essai gratuit
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
