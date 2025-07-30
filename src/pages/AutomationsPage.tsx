@@ -16,7 +16,13 @@ import {
   Clock,
   Users,
   TrendingUp,
-  FileText
+  FileText,
+  Zap,
+  Link,
+  CheckCircle,
+  XCircle,
+  Globe,
+  Key
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -43,9 +49,20 @@ interface EmailAutomation {
   created_at: string;
 }
 
+interface Integration {
+  id: string;
+  platform_name: string;
+  platform_type: string;
+  config: any;
+  is_active: boolean;
+  last_sync: string;
+  created_at: string;
+}
+
 const AutomationsPage = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [automations, setAutomations] = useState<EmailAutomation[]>([]);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -81,6 +98,17 @@ const AutomationsPage = () => {
 
       if (automationsData) {
         setAutomations(automationsData);
+      }
+
+      // Load integrations
+      const { data: integrationsData } = await supabase
+        .from('integrations')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+
+      if (integrationsData) {
+        setIntegrations(integrationsData);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -167,6 +195,61 @@ const AutomationsPage = () => {
     }
   };
 
+  const createIntegration = async (platformName: string, platformType: string, config: any) => {
+    try {
+      const { error } = await supabase
+        .from('integrations')
+        .insert([{
+          user_id: user!.id,
+          platform_name: platformName,
+          platform_type: platformType,
+          config: config,
+          is_active: true
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Intégration créée !",
+        description: `${platformName} a été connecté avec succès.`
+      });
+
+      loadData();
+    } catch (error) {
+      console.error('Error creating integration:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'intégration.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('integrations')
+        .update({ is_active: !currentStatus })
+        .eq('id', integrationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Intégration mise à jour",
+        description: `Intégration ${!currentStatus ? 'activée' : 'désactivée'}.`
+      });
+
+      loadData();
+    } catch (error) {
+      console.error('Error updating integration:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour l'intégration.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background pt-20 pb-8 flex items-center justify-center">
@@ -198,10 +281,10 @@ const AutomationsPage = () => {
       description: "Ce mois-ci"
     },
     {
-      title: "Taux Activité",
-      value: `${automations.length > 0 ? Math.round((automations.filter(a => a.status === 'active').length / automations.length) * 100) : 0}%`,
-      icon: Users,
-      description: "Automatisations actives"
+      title: "Intégrations",
+      value: integrations.length,
+      icon: Zap,
+      description: "Plateformes connectées"
     }
   ];
 
@@ -246,9 +329,10 @@ const AutomationsPage = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="automations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="automations">Automatisations</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="integrations">Intégrations</TabsTrigger>
           </TabsList>
 
           {/* Automations Tab */}
@@ -422,6 +506,225 @@ const AutomationsPage = () => {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Integrations Tab */}
+          <TabsContent value="integrations">
+            <Card className="border-ghost-gray/30">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Intégrations Tierces</CardTitle>
+                    <CardDescription>Connectez vos plateformes favorites pour automatiser vos workflows</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Platform Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Zapier Card */}
+                    <Card className="border-ghost-gray/30 hover:border-ghost-primary/50 transition-colors">
+                      <CardHeader className="text-center">
+                        <div className="w-12 h-12 mx-auto bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-2">
+                          <Zap className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <CardTitle className="text-lg">Zapier</CardTitle>
+                        <CardDescription>Connectez plus de 5000 applications</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Statut:</span>
+                            <Badge variant={integrations.find(i => i.platform_name === 'zapier')?.is_active ? "default" : "secondary"}>
+                              {integrations.find(i => i.platform_name === 'zapier')?.is_active ? 'Connecté' : 'Déconnecté'}
+                            </Badge>
+                          </div>
+                          {integrations.find(i => i.platform_name === 'zapier') ? (
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => {
+                                  const integration = integrations.find(i => i.platform_name === 'zapier');
+                                  if (integration) {
+                                    toggleIntegrationStatus(integration.id, integration.is_active);
+                                  }
+                                }}
+                              >
+                                {integrations.find(i => i.platform_name === 'zapier')?.is_active ? (
+                                  <Pause className="w-4 h-4 mr-1" />
+                                ) : (
+                                  <Play className="w-4 h-4 mr-1" />
+                                )}
+                                {integrations.find(i => i.platform_name === 'zapier')?.is_active ? 'Pause' : 'Activer'}
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button 
+                              className="w-full" 
+                              onClick={() => createIntegration('zapier', 'webhook', { webhook_url: '', description: 'Zapier webhook integration' })}
+                            >
+                              <Link className="w-4 h-4 mr-2" />
+                              Connecter
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Salesforce Card */}
+                    <Card className="border-ghost-gray/30 hover:border-ghost-primary/50 transition-colors">
+                      <CardHeader className="text-center">
+                        <div className="w-12 h-12 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-2">
+                          <Globe className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <CardTitle className="text-lg">Salesforce</CardTitle>
+                        <CardDescription>Synchronisez vos prospects et clients</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Statut:</span>
+                            <Badge variant={integrations.find(i => i.platform_name === 'salesforce')?.is_active ? "default" : "secondary"}>
+                              {integrations.find(i => i.platform_name === 'salesforce')?.is_active ? 'Connecté' : 'Déconnecté'}
+                            </Badge>
+                          </div>
+                          {integrations.find(i => i.platform_name === 'salesforce') ? (
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => {
+                                  const integration = integrations.find(i => i.platform_name === 'salesforce');
+                                  if (integration) {
+                                    toggleIntegrationStatus(integration.id, integration.is_active);
+                                  }
+                                }}
+                              >
+                                {integrations.find(i => i.platform_name === 'salesforce')?.is_active ? (
+                                  <Pause className="w-4 h-4 mr-1" />
+                                ) : (
+                                  <Play className="w-4 h-4 mr-1" />
+                                )}
+                                {integrations.find(i => i.platform_name === 'salesforce')?.is_active ? 'Pause' : 'Activer'}
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button 
+                              className="w-full" 
+                              onClick={() => createIntegration('salesforce', 'api', { client_id: '', client_secret: '', instance_url: '' })}
+                            >
+                              <Key className="w-4 h-4 mr-2" />
+                              Connecter
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Make.com Card */}
+                    <Card className="border-ghost-gray/30 hover:border-ghost-primary/50 transition-colors">
+                      <CardHeader className="text-center">
+                        <div className="w-12 h-12 mx-auto bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-2">
+                          <Settings className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <CardTitle className="text-lg">Make.com</CardTitle>
+                        <CardDescription>Automatisez vos tâches complexes</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Statut:</span>
+                            <Badge variant={integrations.find(i => i.platform_name === 'make')?.is_active ? "default" : "secondary"}>
+                              {integrations.find(i => i.platform_name === 'make')?.is_active ? 'Connecté' : 'Déconnecté'}
+                            </Badge>
+                          </div>
+                          {integrations.find(i => i.platform_name === 'make') ? (
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => {
+                                  const integration = integrations.find(i => i.platform_name === 'make');
+                                  if (integration) {
+                                    toggleIntegrationStatus(integration.id, integration.is_active);
+                                  }
+                                }}
+                              >
+                                {integrations.find(i => i.platform_name === 'make')?.is_active ? (
+                                  <Pause className="w-4 h-4 mr-1" />
+                                ) : (
+                                  <Play className="w-4 h-4 mr-1" />
+                                )}
+                                {integrations.find(i => i.platform_name === 'make')?.is_active ? 'Pause' : 'Activer'}
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button 
+                              className="w-full" 
+                              onClick={() => createIntegration('make', 'webhook', { webhook_url: '', api_key: '' })}
+                            >
+                              <Link className="w-4 h-4 mr-2" />
+                              Connecter
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Connected Integrations List */}
+                  {integrations.length > 0 && (
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold mb-4">Intégrations Connectées</h3>
+                      <div className="space-y-3">
+                        {integrations.map((integration) => (
+                          <div key={integration.id} className="flex items-center justify-between p-4 border border-ghost-gray/30 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-ghost-primary/10 rounded-lg flex items-center justify-center">
+                                {integration.platform_name === 'zapier' && <Zap className="w-5 h-5 text-orange-600" />}
+                                {integration.platform_name === 'salesforce' && <Globe className="w-5 h-5 text-blue-600" />}
+                                {integration.platform_name === 'make' && <Settings className="w-5 h-5 text-purple-600" />}
+                              </div>
+                              <div>
+                                <h4 className="font-medium capitalize">{integration.platform_name}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Connecté le {new Date(integration.created_at).toLocaleDateString()}
+                                  {integration.last_sync && ` • Dernière sync: ${new Date(integration.last_sync).toLocaleDateString()}`}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {integration.is_active ? (
+                                <CheckCircle className="w-5 h-5 text-green-500" />
+                              ) : (
+                                <XCircle className="w-5 h-5 text-red-500" />
+                              )}
+                              <Button variant="ghost" size="sm">
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
