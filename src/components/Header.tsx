@@ -54,20 +54,25 @@ const Header = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="w-4 h-4" />
-                    {user.user_metadata?.name || user.email}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Déconnexion
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>
+                  Assistant IA
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <User className="w-4 h-4" />
+                      {user.user_metadata?.name || user.email}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
@@ -130,6 +135,9 @@ const Header = () => {
                     <div className="text-sm text-muted-foreground px-2">
                       {user.user_metadata?.name || user.email}
                     </div>
+                    <Button variant="ghost" onClick={() => navigate("/chat")}>
+                      Assistant IA
+                    </Button>
                     <Button variant="ghost" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Déconnexion
