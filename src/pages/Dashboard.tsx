@@ -268,7 +268,11 @@ const Dashboard = () => {
                   </div>
                 ))}
                 
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate("/automations")}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Créer une nouvelle automatisation
                 </Button>
@@ -316,9 +320,13 @@ const Dashboard = () => {
                 <CardTitle className="text-lg">Actions Rapides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/automations")}
+                >
                   <Mail className="w-4 h-4 mr-2" />
-                  Nouvelle campagne email
+                  Gestion des automatisations
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Bot className="w-4 h-4 mr-2" />
