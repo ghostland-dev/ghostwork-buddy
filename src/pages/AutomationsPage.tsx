@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import IntegrationConfigModal from "@/components/IntegrationConfigModal";
 
 interface EmailTemplate {
   id: string;
@@ -64,6 +65,9 @@ const AutomationsPage = () => {
   const [automations, setAutomations] = useState<EmailAutomation[]>([]);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | undefined>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -223,6 +227,48 @@ const AutomationsPage = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const updateIntegration = async (integrationId: string, config: any) => {
+    try {
+      const { error } = await supabase
+        .from('integrations')
+        .update({ config: config, updated_at: new Date().toISOString() })
+        .eq('id', integrationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Configuration mise à jour",
+        description: "L'intégration a été mise à jour avec succès."
+      });
+
+      loadData();
+    } catch (error) {
+      console.error('Error updating integration:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour l'intégration.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleIntegrationSave = async (platformName: string, platformType: string, config: any) => {
+    if (selectedIntegration) {
+      await updateIntegration(selectedIntegration.id, config);
+    } else {
+      await createIntegration(platformName, platformType, config);
+    }
+    setConfigModalOpen(false);
+    setSelectedIntegration(undefined);
+    setSelectedPlatform('');
+  };
+
+  const openConfigModal = (platform: string, integration?: Integration) => {
+    setSelectedPlatform(platform);
+    setSelectedIntegration(integration);
+    setConfigModalOpen(true);
   };
 
   const toggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
@@ -569,7 +615,7 @@ const AutomationsPage = () => {
                           ) : (
                             <Button 
                               className="w-full" 
-                              onClick={() => createIntegration('zapier', 'webhook', { webhook_url: '', description: 'Zapier webhook integration' })}
+                              onClick={() => openConfigModal('zapier')}
                             >
                               <Link className="w-4 h-4 mr-2" />
                               Connecter
@@ -616,14 +662,14 @@ const AutomationsPage = () => {
                                 )}
                                 {integrations.find(i => i.platform_name === 'salesforce')?.is_active ? 'Pause' : 'Activer'}
                               </Button>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" onClick={() => openConfigModal('salesforce', integrations.find(i => i.platform_name === 'salesforce'))}>
                                 <Settings className="w-4 h-4" />
                               </Button>
                             </div>
                           ) : (
                             <Button 
                               className="w-full" 
-                              onClick={() => createIntegration('salesforce', 'api', { client_id: '', client_secret: '', instance_url: '' })}
+                              onClick={() => openConfigModal('salesforce')}
                             >
                               <Key className="w-4 h-4 mr-2" />
                               Connecter
@@ -670,14 +716,14 @@ const AutomationsPage = () => {
                                 )}
                                 {integrations.find(i => i.platform_name === 'make')?.is_active ? 'Pause' : 'Activer'}
                               </Button>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" onClick={() => openConfigModal('make', integrations.find(i => i.platform_name === 'make'))}>
                                 <Settings className="w-4 h-4" />
                               </Button>
                             </div>
                           ) : (
                             <Button 
                               className="w-full" 
-                              onClick={() => createIntegration('make', 'webhook', { webhook_url: '', api_key: '' })}
+                              onClick={() => openConfigModal('make')}
                             >
                               <Link className="w-4 h-4 mr-2" />
                               Connecter
@@ -715,7 +761,7 @@ const AutomationsPage = () => {
                               ) : (
                                 <XCircle className="w-5 h-5 text-red-500" />
                               )}
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" onClick={() => openConfigModal(integration.platform_name, integration)}>
                                 <Settings className="w-4 h-4" />
                               </Button>
                             </div>
@@ -729,6 +775,19 @@ const AutomationsPage = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Integration Config Modal */}
+        <IntegrationConfigModal
+          isOpen={configModalOpen}
+          onClose={() => {
+            setConfigModalOpen(false);
+            setSelectedIntegration(undefined);
+            setSelectedPlatform('');
+          }}
+          platform={selectedPlatform}
+          integration={selectedIntegration}
+          onSave={handleIntegrationSave}
+        />
       </div>
     </div>
   );
