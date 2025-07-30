@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_stats: {
+        Row: {
+          active_subscribers: number | null
+          id: string
+          total_automations: number | null
+          total_revenue: number | null
+          total_users: number | null
+          updated_at: string
+        }
+        Insert: {
+          active_subscribers?: number | null
+          id?: string
+          total_automations?: number | null
+          total_revenue?: number | null
+          total_users?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active_subscribers?: number | null
+          id?: string
+          total_automations?: number | null
+          total_revenue?: number | null
+          total_users?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -46,6 +112,33 @@ export type Database = {
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
           user_id?: string | null
         }
         Relationships: []

@@ -13,14 +13,17 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Crown
+  Crown,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { user, subscription } = useAuth();
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [stats, setStats] = useState({
     totalAutomations: 12,
     activeAutomations: 8,
@@ -62,12 +65,34 @@ const Dashboard = () => {
     // Redirect if not authenticated
     if (!user) {
       navigate("/auth");
+      return;
     }
+
+    // Load user profile
+    const loadProfile = async () => {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
   }, [user, navigate]);
 
   if (!user) {
     return null;
   }
+
+  const isAdmin = userProfile?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-8">
@@ -76,14 +101,26 @@ const Dashboard = () => {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Bonjour, {user.user_metadata?.name || user.email?.split('@')[0]} 👋
+              Bonjour, {userProfile?.full_name || user.email?.split('@')[0]} 👋
             </h1>
             <p className="text-muted-foreground">
               Voici un aperçu de vos automatisations GhostWorker
             </p>
+            {isAdmin && (
+              <Badge className="mt-2 bg-ghost-primary text-primary-foreground">
+                <Shield className="w-3 h-3 mr-1" />
+                Administrateur
+              </Badge>
+            )}
           </div>
           
           <div className="flex gap-3">
+            {isAdmin && (
+              <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Shield className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
             <Button variant="outline" onClick={() => navigate("/chat")}>
               <Bot className="w-4 h-4 mr-2" />
               Assistant IA
