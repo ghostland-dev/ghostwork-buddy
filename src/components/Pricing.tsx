@@ -22,11 +22,11 @@ const Pricing = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Stripe Price IDs (you'll need to create these in your Stripe dashboard)
+  // Stripe Price IDs from your Stripe dashboard
   const STRIPE_PRICES = {
-    starter: "price_starter_monthly", // Replace with actual Stripe price ID
-    pro: "price_pro_monthly",         // Replace with actual Stripe price ID  
-    agency: "price_agency_monthly"    // Replace with actual Stripe price ID
+    starter: "price_1RqaXNEDWgz2TvU1VcrmHMd1", // €29.00/month
+    pro: "price_1RqaWxEDWgz2TvU1gEgRAURp",     // €79.00/month  
+    agency: "price_1RqaVoEDWgz2TvU1iJjpiLxl"   // €199.00/month
   };
 
   const plans = [
