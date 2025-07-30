@@ -1,10 +1,12 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
+import HowItWorks from "@/components/HowItWorks";
 import Demo from "@/components/Demo";
 import Testimonials from "@/components/Testimonials";
 import Pricing from "@/components/Pricing";
 import FAQ from "@/components/FAQ";
+import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -16,12 +18,14 @@ const Index = () => {
         <div id="features">
           <Features />
         </div>
+        <HowItWorks />
         <Demo />
         <Testimonials />
         <div id="pricing">
           <Pricing />
         </div>
         <FAQ />
+        <Contact />
       </main>
       <Footer />
     </div>
