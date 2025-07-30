@@ -55,6 +55,9 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+                  Dashboard
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>
                   Assistant IA
                 </Button>
@@ -135,6 +138,9 @@ const Header = () => {
                     <div className="text-sm text-muted-foreground px-2">
                       {user.user_metadata?.name || user.email}
                     </div>
+                    <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </Button>
                     <Button variant="ghost" onClick={() => navigate("/chat")}>
                       Assistant IA
                     </Button>
