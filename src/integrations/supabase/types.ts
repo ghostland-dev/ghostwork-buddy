@@ -84,6 +84,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          integration_triggers: Json | null
           last_run: string | null
           name: string
           next_run: string | null
@@ -100,6 +101,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          integration_triggers?: Json | null
           last_run?: string | null
           name: string
           next_run?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          integration_triggers?: Json | null
           last_run?: string | null
           name?: string
           next_run?: string | null
@@ -218,6 +221,42 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           variables?: Json | null
+        }
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync: string | null
+          platform_name: string
+          platform_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          platform_name: string
+          platform_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          platform_name?: string
+          platform_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
